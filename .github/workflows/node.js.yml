@@ -21,40 +21,31 @@ jobs:
       packages: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-    
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: ./frontend
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm install
+      - run: npm run build --if-present
 
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: ./backend
-
-      # Obtener el tag desde el archivo .env
       - name: Obtener Tag
         id: obtener_tag
         run: |
-          if [ -f ".env" ]; then
-            TAG=$(grep PAM_APP_VERSION .env | awk -F '=' '{print $2}')
-            echo "TAG=$TAG" >> $GITHUB_ENV
-            echo "Tag encontrado: $TAG"
-          else
-            echo "El archivo .env no existe o no contiene PAM_APP_VERSION."
-            exit 1
-          fi
+          TAG=$(cat .env | grep PAM_APP_VERSION | awk -F '=' '{print $2}')
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo $TAG
 
-      # Configurar metadata de la imagen Docker
       - name: Docker meta
         id: docker_meta
         uses: docker/metadata-action@v5.0.0
         with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=semver,pattern={{env.TAG}}
+          images: ghcr.io/${{github.repository}}
 
-      # Loguearse en GitHub Container Registry
+        #logear a GitHub Container Registry
       - name: Login to GHCR
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3.0.0
@@ -63,16 +54,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Construir y publicar la imagen Docker
-      - name: Build and push Docker image
+      - name: Build and push
         uses: docker/build-push-action@v5.0.0
         env:
           DOCKER_BUILDKIT: 1
         with:
-          context: .
           push: true
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
-      
-      
-
