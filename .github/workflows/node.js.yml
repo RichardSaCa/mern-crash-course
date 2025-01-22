@@ -67,13 +67,6 @@ jobs:
 
       - name: Build and push
         uses: docker/build-push-action@v5.0.0
-        # env:
-        #   DOCKER_BUILDKIT: 1
-        # with:
-        #   push: true
-        #   tags: ${{ steps.docker_meta.outputs.tags }}
-        #   labels: ${{ steps.docker_meta.outputs.labels }}
-
         env:
             DOCKER_BUILDKIT: 1
           with:
