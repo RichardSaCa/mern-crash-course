@@ -29,13 +29,13 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      # Instalar dependencias usando `npm ci`
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm ci
+        working-directory: ./frontend
 
-      # Construir el proyecto si aplica
-      - name: Build project
-        run: npm run build --if-present
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: ./backend
 
       # Obtener el tag desde el archivo .env
       - name: Obtener Tag
@@ -79,11 +79,5 @@ jobs:
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
       
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: ./frontend
-
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: ./backend
+      
 
